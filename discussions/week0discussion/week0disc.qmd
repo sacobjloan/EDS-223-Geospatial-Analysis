@@ -5,8 +5,10 @@ https://eds-223-geospatial.github.io/course-materials/discussions/week0-discussi
 ```{r}
 # download packages
 
-packages <- c("here", "janitor", "tidyverse", "sf", "terra", "tmap", "spData", "spDataLarge", "geodata", "kableExtra", "viridisLite")
+packages <- c("here", "janitor", "tidyverse", "sf", "terra", "tmap", "spData", "geodata", "kableExtra", "viridisLite")
 installed_packages <- packages %in% rownames(installed.packages())
+
+install.packages("spDataLarge", repos = "https://nowosad.github.io/drat/", type = "source")
 
 if (any(installed_packages == FALSE)) {
   install.packages(packages[!installed_packages])
@@ -26,10 +28,93 @@ library(kableExtra)
 
 
 ```{r}
-gdw_df <- read_csv("discussions/week0discussion/data/gdw.csv")
+# now we will read in the csv and give it nice col titles
+gdw_df <- read_csv("data/gdw.csv") |> 
+  clean_names()
+gdw_df
 ```
 
 
 ```{r}
+# Show the first and last 10 rows of data, then use kable() to format
 
+head(gdw_df, n = 10) |> 
+  kable()
+
+tail(gdw_df, n = 10) |> 
+  kable()
+
+# then look at how many rows and columns are in data
+
+
+ncol(gdw_df)
+nrow(gdw_df)
+
+names(gdw_df)
+```
+
+
+```{r}
+# Extracting things through indexing
+
+as.data.frame(gdw_df$country)
+as.data.frame(unique(gdw_df$country))
+
+# OR we can get it as a vector or dataframe using dif bracketing
+
+country_df <- gdw_df[,"country"]
+country_vec <- gdw_df[["country"]]
+
+# how many dams by dam type?
+
+gdw_df |> 
+  group_by(dam_type) |> 
+  summarize(count = n()) |> 
+  ungroup()
+
+sub_dam = gdw_df |> 
+  filter(dam_type == "Dam")
+
+# Re-order data fram by asecnding order of installation year
+gdw_df |> 
+  arrange(year_dam)
+```
+
+
+```{r}
+# Make a bar graph of average height of dam/barrier in meters by country
+
+gdw_df |>
+  group_by(country) |>
+  summarize(mean_dam_hgt_m = mean(dam_hgt_m, na.rm = TRUE)) |>
+  ungroup() |> 
+  ggplot(aes(x = country, y = mean_dam_hgt_m)) +
+    geom_bar(stat = "identity") +
+    labs(x = "Country",
+         y = "Average height of dam/barrier in meters") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
+
+# Now a scatter plot of height of dam/barrier versus representative maximum storage capacity
+
+gdw_df |> 
+  ggplot(
+    aes(x = dam_hgt_m, y = cap_mcm)
+  ) +
+    geom_point() +
+    labs(x = "Storage capacity",
+    y = "Height of dam")
+
+```
+
+```{r}
+# So if we look at the type of column that the geospatial data is in , its a string and that's no good
+class(gdw_df$shape)
+
+# We have to enable this type of data to be spatial using some of the sf functions
+
+gdw_st <- st_read("data/gdw.gdb") |> 
+  clean_names()
+
+gdw_df <- read_sf("data/gdw.gdb")
 ```
