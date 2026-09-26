@@ -13,5 +13,5 @@ library(tidyverse)
 library(sf)
 library(kableExtra)
 
-gdw_df <- read_csv("labs\week0lab\week0discussion\data\gdw.csv")
+gdw_df <- read_csv("labs\week0lab\week0discussion\gdw.csv")
 
